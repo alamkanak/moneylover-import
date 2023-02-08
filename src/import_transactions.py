@@ -5,17 +5,30 @@ from selenium.webdriver.common.by import By
 import pandas as pd
 from datetime import datetime
 import time 
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
 # ================== FUNCTIONS ==================
 
+print('=====================')
+print(os.environ.get('CHROME_USER_DATA_DIR'))
+print('=====================')
+
 def init_driver():
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_experimental_option("detach", True)
-    chrome_options.add_argument(r"user-data-dir=" + "/Users/raquib/Desktop/workspaces/moneylover/userdata")
-    driver = webdriver.Chrome(chrome_options=chrome_options)
+    chrome_options.add_argument(r"user-data-dir=" + os.environ.get('CHROME_USER_DATA_DIR'))
+    chrome_options.set_capability("browserVersion", "98")
+    if os.environ.get('ENV') == 'docker':
+        driver = webdriver.Remote(
+            "http://chrome:4444/wd/hub", 
+            DesiredCapabilities.CHROME,
+            options=chrome_options
+        )
+    else:
+        driver = webdriver.Chrome(options=chrome_options)
     driver.get("https://web.moneylover.me/")
     return driver
 
@@ -54,7 +67,7 @@ def parse_amount(row):
         return str(row['Deposit']).replace(',', '')
 
 def login(driver):
-    email = wait_for_xpath('//*[@id="input-26"]')
+    email = wait_for_xpath('//*[@id="input-26"]', driver)
     email.send_keys(os.environ.get('MONEYLOVER_USER_NAME'))
     password = driver.find_element(by=By.XPATH, value='//*[@type="password"]')
     password.send_keys(os.environ.get('MONEYLOVER_PASSWORD'))
@@ -94,66 +107,68 @@ for category in unique_categories:
 driver = init_driver()
 
 # Login
-# login(driver)
+print("Logging in")
+login(driver)
+print("Logging success")
 
-# Tabs
-tabs = {
-    "Expense": 2,
-    "Income": 3
-}
+# # Tabs
+# tabs = {
+#     "Expense": 2,
+#     "Income": 3
+# }
 
-# Read excel
-wallets = list(pd.read_excel('data/transactions.xlsx', None).keys())
+# # Read excel
+# wallets = list(pd.read_excel('data/transactions.xlsx', None).keys())
 
-for wallet in wallets:
-    df = pd.read_excel('data/transactions.xlsx', sheet_name=wallet)
-    for idx, row in df.iterrows():
+# for wallet in wallets:
+#     df = pd.read_excel('data/transactions.xlsx', sheet_name=wallet)
+#     for idx, row in df.iterrows():
 
-        tab = row['Category'].split('|')[0]
-        category = row['Category'].split('|')[1]
-        tab_id = tabs[tab]
-        print(wallet + "-" + str(idx))
-        amount = parse_amount(row)
-        year, month, date = parse_date(row['Date'])
+#         tab = row['Category'].split('|')[0]
+#         category = row['Category'].split('|')[1]
+#         tab_id = tabs[tab]
+#         print(wallet + "-" + str(idx))
+#         amount = parse_amount(row)
+#         year, month, date = parse_date(row['Date'])
 
-        # Open transaction modal
-        click_when_clickable('//button[.//*[contains(text(), "Add transaction")]]', driver)
+#         # Open transaction modal
+#         click_when_clickable('//button[.//*[contains(text(), "Add transaction")]]', driver)
         
-        # Click wallet dropdown
-        click_when_clickable('(//*[@title="Wallet"]/div[contains(@class, "search-border")])[2]', driver)
+#         # Click wallet dropdown
+#         click_when_clickable('(//*[@title="Wallet"]/div[contains(@class, "search-border")])[2]', driver)
         
-        # Select wallet
-        click_when_clickable('//div[contains(@class, "focus-wallet") and .//*[contains(text(), "' + wallet + '")]]', driver, True)
+#         # Select wallet
+#         click_when_clickable('//div[contains(@class, "focus-wallet") and .//*[contains(text(), "' + wallet + '")]]', driver, True)
         
-        # Open category dropdown
-        click_when_clickable('(//*[@title="Category"]/div[contains(@class, "search-border")])[2]', driver)
+#         # Open category dropdown
+#         click_when_clickable('(//*[@title="Category"]/div[contains(@class, "search-border")])[2]', driver)
 
-        # Select category tab
-        click_when_clickable('//div[contains(@class, "tab-item") and .//*[contains(text(), "' + tab + '")]]', driver)
+#         # Select category tab
+#         click_when_clickable('//div[contains(@class, "tab-item") and .//*[contains(text(), "' + tab + '")]]', driver)
 
-        # Select category
-        click_when_clickable('//div[@id="tab-' + str(tab_id) + '"]//div[(contains(@class, "category-item") or contains(@class, "child-category-item")) and .//*[contains(text(), "' + category + '")]]', driver, True)
+#         # Select category
+#         click_when_clickable('//div[@id="tab-' + str(tab_id) + '"]//div[(contains(@class, "category-item") or contains(@class, "child-category-item")) and .//*[contains(text(), "' + category + '")]]', driver, True)
 
-        # Open date modal
-        click_when_clickable('(//*[@title="Date"]/div[contains(@class, "search-border")])[2]', driver)
+#         # Open date modal
+#         click_when_clickable('(//*[@title="Date"]/div[contains(@class, "search-border")])[2]', driver)
 
-        # Select date
-        click_when_clickable('//div[contains(@class, "picker-date")]//div[contains(@class, "v-date-picker-title__year")]', driver)
-        time.sleep(1)        
-        click_when_clickable('//ul[contains(@class, "v-date-picker-years")]//li[contains(text(), "' + str(year) + '")]', driver, True) # Year 2023
-        time.sleep(1)        
-        click_when_clickable('//*[text()="' + month + '"]/..', driver, True) # month Jan
-        time.sleep(1)        
-        click_when_clickable('//*[contains(@class, "v-date-picker-table--date")]//*[text()="' + str(date) + '"]/..', driver, True) # date 31
-        time.sleep(1)
+#         # Select date
+#         click_when_clickable('//div[contains(@class, "picker-date")]//div[contains(@class, "v-date-picker-title__year")]', driver)
+#         time.sleep(1)        
+#         click_when_clickable('//ul[contains(@class, "v-date-picker-years")]//li[contains(text(), "' + str(year) + '")]', driver, True) # Year 2023
+#         time.sleep(1)        
+#         click_when_clickable('//*[text()="' + month + '"]/..', driver, True) # month Jan
+#         time.sleep(1)        
+#         click_when_clickable('//*[contains(@class, "v-date-picker-table--date")]//*[text()="' + str(date) + '"]/..', driver, True) # date 31
+#         time.sleep(1)
 
-        # Enter amount
-        enter_text('//div[contains(@class, "v-dialog--active")]//div[contains(@class, "amount")]//input', amount, driver)
+#         # Enter amount
+#         enter_text('//div[contains(@class, "v-dialog--active")]//div[contains(@class, "amount")]//input', amount, driver)
 
-        # Enter note
-        enter_text('//div[contains(@class, "v-dialog--active")]//div[contains(@class, "note")]//input', row['Note'], driver)
-        time.sleep(1)
+#         # Enter note
+#         enter_text('//div[contains(@class, "v-dialog--active")]//div[contains(@class, "note")]//input', row['Note'], driver)
+#         time.sleep(1)
 
-        # Save transaction
-        click_when_clickable('//div[contains(@class, "v-dialog--active")]//div[contains(@class, "transaction-dialog")]//div[contains(@class, "transaction-action")]//button[contains(@class, "done")]', driver)
-        time.sleep(5)
+#         # Save transaction
+#         click_when_clickable('//div[contains(@class, "v-dialog--active")]//div[contains(@class, "transaction-dialog")]//div[contains(@class, "transaction-action")]//button[contains(@class, "done")]', driver)
+#         time.sleep(5)

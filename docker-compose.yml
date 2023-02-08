@@ -1,18 +1,24 @@
 version: '3'
 services:
-  selenium:
-    build:
-      context: .
-      shm_size: '2gb'
-    restart: 'no'
-    volumes:
-      - .:/usr/src/app
+  chrome:
+    image: seleniarm/standalone-chromium:latest
     ports:
       - 4444:4444
       - 7900:7900
     shm_size: '2gb'
+  selenium:
+    build:
+      context: .
+    restart: 'no'
+    volumes:
+      - ./src:/usr/src/app/src
+      - ./chrome-data:/usr/src/app/chromedata
+      - ./data:/usr/src/app/data
+    depends_on:
+      - chrome
     command: tail -F anything
-  chrome:
-    image: selenium/standalone-chrome
-    ports:
-      - 4444:4444
+    env_file:
+      - .env
+    environment:
+      - CHROME_USER_DATA_DIR=/usr/src/app/chromedata
+      - ENV=docker

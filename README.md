@@ -1,5 +1,6 @@
 # Import transactions to money lover web
 
+## Prepare
 1. Create `data/transactions.xlsx` having each sheet name as the wallet name exactly.
 2. Create a folder to store browser sessions
     ```bash
@@ -15,12 +16,23 @@
 5. Add values in the env file:
     ```bash
     cp .env.example .env
-    ```    
-6. Run:
+    ```
+
+## Run 
+### Locally   
+1. Run:
     ```bash
     conda create -n moneylover python=3.9
     conda activate moneylover
     pip install -r requirements.txt
-    python import_transactions.py
+    python src/import_transactions.py
     ```
-7. Import the transfers manually.
+2. Import the transfers manually.
+
+### With docker
+1. Run:
+    ```bash
+    docker-compose up -d
+    docker-compose exec selenium python src/import_transactions.py
+    ```
+2. See whats happening inside container: http://localhost:7900/?autoconnect=1&resize=scale&password=secret
