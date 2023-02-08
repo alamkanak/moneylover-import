@@ -31,7 +31,7 @@ A selenium script to import transactions from excel file to moneylover.
     ```
 2. Import the transfers manually.
 
-### With docker
+### With docker (does not work on Apple chip mac)
 1. Run:
     ```bash
     docker-compose up -d
