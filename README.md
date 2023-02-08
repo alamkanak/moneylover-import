@@ -1,10 +1,12 @@
 # Import transactions to money lover web
 
+A selenium script to import transactions from excel file to moneylover.
+
 ## Prepare
-1. Create `data/transactions.xlsx` having each sheet name as the wallet name exactly.
+1. Create `data/transactions.xlsx` having each sheet name as the exact wallet name.
 2. Create a folder to store browser sessions
     ```bash
-    mkdir userdata
+    mkdir chrome-data
     ```
 3. Add transactions in each sheet. Columns: 
     - `Date`: Example: `31/12/2023` or `12-Jun-2022`
